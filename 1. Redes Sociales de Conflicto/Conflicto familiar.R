@@ -104,55 +104,107 @@ plot(dg, main = "Redes Sociales de Conflicto \n2 Horas de Interacción",
 ####  5. Matriz Adyacente ####
 #============================#
 # Convertir a Matriz - Red no dirigida
-A <- matrix(data = c(0, 4, 0, 2, 5, 4, 0, 0, 2,
-                4, 0, 0, 0, 0, 1, 2, 2, 1,
-                rep(0, 9),
-                2, rep(0, 8),
-                5, rep(0, 8),
-                4, 1, rep(0, 7),
-                0, 2, rep(0,7),
-                0, 2, rep(0,7),
-                2, 1, rep(0,7)), nrow = 9, ncol = 9)
-row.names(A) <- nombres
-colnames(A) <- nombres
+dg <- as.undirected(dg)
 
+# Crear matriz adyacente
+A <- get.adjacency(dg,
+                   sparse = FALSE) # Objeto matriz base
 print(A)
+class(A)
 
-# Función vectorización de la triangular inferior
-vectorizacion <- function(matriz) {
-  n <- dim(matriz)[1]
-  vector <- c()
-  # Contador
-  c <- 1
-  for (i in 1:(n-1)) {
-   vector <- c(vector, as.vector(matriz[(c+1):n, c]))
-   c <- c + 1
-  }
-  return(vector)
+# ¿Simétrica?
+isSymmetric(A)
+
+# Versión vectorizada
+(V <- A[lower.tri(A)])
+
+#===============================#
+####  6. Funciones Ubicación ####
+#===============================#
+# n = nodos
+# i = fila
+# j = columna
+# k = index en el vector
+
+
+## FUNCIÓN 1: Ubicación Vector a partir de Matriz
+
+UbiVector <- function(n, i, j) {
+  
+  if ((i > n) | (j > n)){
+    k <- "Operación inválida: i o j supera a n"
+    }else{
+    
+      if (i != j){
+      # Longitud del vector
+      nK <- n * (n - 1) / 2
+      
+      # Crear matriz nxn
+      matriz <- matrix(data = 0, nrow = n, ncol = n)
+      # Crear vector
+      vector <- 1:nK
+      
+      ## TRIANGULAR INFERIOR
+      matriz[lower.tri(matriz, diag = FALSE)] <- vector
+      ## TRIANGULAR SUPERIOR
+      matriz[upper.tri(matriz, diag = FALSE)] <- vector
+      
+      # Valor en matriz
+      k <- matriz[i, j]}else{
+        k <- "Operación inválida: No se admiten reflexibidades"
+      }
+    }
+  
+  return(k)
 }
-
-v <- vectorizacion(A)
-
-# Verificación 
-length(v) == (dim(A)*(dim(A)-1)/2)[1]
-
-
-# Función de vector a triangular inferior
-a_matriz <- function(vector, n) {
-  matriz <- matrix(data = 0, nrow = n, ncol = n)
-  # Contador
-  c <- 1
-  for (i in 1:(n-1)) {
-    num <- length(matriz[(c+1):n, c])
-    matriz[(c+1):n, c] <- vector[1:num]
-    vector <- vector[(num+1):length(vector)]
-    c <- c + 1
-  }
-  return(matriz)
-}
-
-M <- a_matriz(v, n = 9)
 
 # Verificación
-A[upper.tri(A)] <- 0
-any(M == A)
+UbiVector(n = 6, i = 7, j = 3)
+UbiVector(n = 6, i = 4, j = 3)
+UbiVector(n = 6, i = 3, j = 6)
+UbiVector(n = 6, i = 5, j = 5)
+
+
+## FUNCIÓN 2: Ubicación Matriz a partir de Vector
+
+UbiMatriz <- function(n, k, type = c("both", "upper", "lower")) {
+  nK <- n * (n - 1) / 2
+  
+  if (k > nK)
+    return("Operación inválida: k supera la longitud del vector")
+  
+  if (k <= nK)
+    # Crear matriz nxn
+    matriz <- matrix(data = 0, nrow = n, ncol = n)
+    # Crear vector
+    vector <- 1:nK
+    
+    ## TRIANGULAR INFERIOR
+    matriz[lower.tri(matriz, diag = FALSE)] <- vector
+    
+    ## TRIANGULAR SUPERIOR
+    matriz[upper.tri(matriz, diag = FALSE)] <- vector
+    
+    ## Valores
+    ij <- as.data.frame(which(matriz == k, arr.ind = TRUE))
+    row.names(ij) <- c("Triangular inferior", "Triangular superior")
+    colnames(ij) <- c("i", "j")
+    
+    ## Return
+    if (type == "both")
+      return(ij)
+    
+    if (type == "lower")
+      return(ij[1,])
+    
+    if (type == "upper")
+      return(ij[2,])
+}
+
+# Verificación
+UbiMatriz(n = 6, k = 16, type = "both")
+UbiMatriz(n = 6, k = 11, type = "both")
+UbiMatriz(n = 6, k = 4, type = "lower")
+
+
+

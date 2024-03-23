@@ -4,10 +4,10 @@
 #==========================================================================#
 
 
-#================================#
-#### 0. Directorio y paquetes ####
-#================================#
-getwd()
+#==================================#
+#### 0. Instalación de paquetes ####
+#==================================#
+#update.packages()
 
 library(intergraph)
 library(igraph)
@@ -22,7 +22,6 @@ library(visNetwork)
 library(htmlwidgets)
 
 #install.packages("statnetWeb")
-#update.packages()
 library(statnetWeb)
 
 #library(devtools)
@@ -452,22 +451,106 @@ plot(h3.mov,vertex.color="red",
 #===========================================#
 rm(list = ls())
 
+library(dplyr)
+library(ggplot2)
 library(igraph)
+
+df_raw <- read.csv("Datos/reforma_tributaria_04_11_2022_5pm_mixed_spanish.csv")
+df_raw %>% tibble %>% filter(tweet_type == "retweet") %>% 
+  select(from_user_id,to_user_id,
+         from_user_screen_name,to_user_screen_name,
+         from_user_botscore,to_user_botscore) -> df
+
+G <- graph_from_data_frame(select(df,from_user_id,to_user_id),directed = T)
+G <- simplify(G)
 
 ####  3.1 Caracterizar la centralidad de los nodos ####
 
+dc <- igraph::degree(graph = G, normalized = TRUE)
+head(sort(dc, decreasing = TRUE), n = 5)
 
+# closeness centraliy normalizada
+cc <- igraph::closeness(graph = G, normalized = TRUE)
+head(sort(cc, decreasing = TRUE), n = 5)
+
+# betweenness centrality normalizada
+bc <- igraph::betweenness(graph = G, normalized = TRUE)
+head(sort(bc, decreasing = TRUE), n = 5)
+
+# eigen centraliy normalizada
+ec <- eigen_centrality(graph = G, scale = TRUE)$vector
+head(sort(ec, decreasing = TRUE), n = 5)
 
 ####  3.2 Visualizar la red ####
 ## con un diseño adecuado teniendo en cuenta la centralidad de los nodos. 
 
+# visualizacion
+par(mfrow = c(2,2), mar = c(4, 3, 3, 1))
+set.seed(202424)
+l <- layout_with_fr(G)
+plot(G, layout = l, vertex.size = 15*sqrt(dc), vertex.frame.color = "black", vertex.label = NA, main = "Grado")
+plot(G, layout = l, vertex.size = 15*sqrt(cc), vertex.frame.color = "black", vertex.label = NA, main = "Cercania")
+plot(G, layout = l, vertex.size = 15*sqrt(bc), vertex.frame.color = "black", vertex.label = NA, main = "Intermediación")
+plot(G, layout = l, vertex.size = 15*sqrt(ec), vertex.frame.color = "black", vertex.label = NA, main = "Propia")
+dev.off()
 
+plot(G, layout = l, vertex.size = log(1+ec), vertex.label = NA,
+     vertex.color = "lightblue", vertex.label.cex = 0.4, edge.width = 0.5,
+     edge.color = "#a0a0a060", edge.arrow.size = 0.2)
 
 ####  3.3 Identificar los puntos de articulación, los puntos aislados y las componentes ####
 
+# red conectada?
+is_connected(G)
+
+# puntos aislados
+V(G)[igraph::degree(G) == 0]
+
+# componentes
+componentes <- decompose(G)
+length(componentes)
+
+table(sapply(X = componentes, FUN = vcount))
+
+# tamaño de la componte gigante
+max(sapply(X = componentes, FUN = vcount))
+which.max(sapply(X = componentes, FUN = vcount))
+max(sapply(X = componentes, FUN = vcount))/vcount(G)
+
+# componente gigante
+G_gc <- decompose(G)[[1]]
+
+# k-conectividad
+vertex_connectivity(G_gc)
+edge_connectivity(G_gc)
+
+# puntos de articulación
+G_cv <- articulation_points(G_gc)
+length(G_cv)
+
+# % de los vértices que son puntos de articulación.
+length(G_cv)/vcount(G_gc)
+
+# visualización
+l <- layout_with_fr(G_gc)
+ec <- eigen_centrality(graph = G_gc, scale = TRUE)$vector
+plot(G_gc, layout = l, vertex.size = log(2+ec), vertex.label = NA,
+     vertex.color = "lightblue", vertex.label.cex = 0.4, edge.width = 0.5,
+     edge.color = "#a0a0a060", edge.arrow.size = 0.2)
 
 
 ####  3.4 Hacer la distribución de las distancia geodésica ####
+
+# distancia geodésica promedio
+mean_distance(G_gc)
+
+# distribución de las distancias
+distance_table(G_gc)
+
+# visualización
+senderos <- distance_table(G_gc)$res
+names(senderos) <- 1:length(senderos)
+barplot(prop.table(senderos), xlab = "Distancia geodésica", ylab = "F. Relativa", border = "grey", col = "grey", main = "Distribución de distancias geodésicas")
 
 
 ####  3.5 Determinar si la red es libre de escala ####
@@ -475,20 +558,45 @@ library(igraph)
 
 ####  3.6 Hacer un censo de los clanes y calcular el número clan ####
 
+# frecuencias de clanes
+table(sapply(X = cliques(graph = G_gc, min = 1, max = 10), FUN = length))
+
+#Un clan máximo (maximum clique) es el clan maximal más grande.
+#El número clan (clique number) es el tamaño del clan máximo.
+# clanes máximos
+largest_cliques(graph = G_gc)
+
+# número clan
+clique_num(graph = G_gc)
+
 
 ####  3.7 Calcular la densidad junto con el coeficiente de agrupamiento de la red ####
+
 
 
 ####  3.8 Particionar la red usando tres métodos de agrupamiento de su elección ####
 ## Visualizar los resultados obtenidos.
 
+c1 <- cluster_label_prop  (G_gc)
+c2 <- cluster_spinglass   (G_gc)
+c3 <- cluster_walktrap    (G_gc)
+
+igraph_options(vertex.size = 3, vertex.frame.color = "black")
+plot(G_gc, vertex.label = NA, layout = l, vertex.color = c1$membership, main = "c1")
+plot(G_gc, vertex.label = NA, layout = l, vertex.color = c2$membership, main = "c2")
+plot(G_gc, vertex.label = NA, layout = l, vertex.color = c3$membership, main = "c3")
 
 ####  3.9 Hacer un análisis de asortatividad de la red ####
 
+# asortatividad nominal
+v.types <- V(G_gc)$
+assortativity_nominal(graph = G_gc, types = v.types, directed = FALSE)
+
+# asortatividad grado
+assortativity_degree(G_gc)
 
 ####  3.9 Interpretar los resultados ####
-
-
+## Esta parte puede encontrarse dentro del informe correspondiente al taller 3
 
 #=========================#
 ####  4. Referencias   ####

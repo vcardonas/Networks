@@ -1,36 +1,25 @@
 #==========================================================================#
-#                    Métodos Cuantitativos en Psicología                   #
-#                          Tablas de Contingencia                          #          
+#             Análisis Estadístico de Redes Sociales: Taller #3            #
+#                         Valentina Cardona Saldaña                       #          
 #==========================================================================#
-
 
 #==================================#
 #### 0. Instalación de paquetes ####
 #==================================#
 #update.packages()
-
 library(intergraph)
 library(igraph)
-
-## Fuente de datos
 library(devtools)
 #install_github("DougLuke/UserNetR")
 library(UserNetR)
-
 library(networkD3)
 library(visNetwork)
 library(htmlwidgets)
-
-#install.packages("statnetWeb")
 library(statnetWeb)
-
-#library(devtools)
 #install_github("gastonstat/arcdiagram")
 library(arcdiagram)
-
 library(statnet)
 library(circlize)
-
 library(sna)
 library(ggplot2)
 library(Hmisc)
@@ -41,20 +30,16 @@ library(Hmisc)
 # Sintetizar y replicar el Capítulo 6 de Luke (2015).
 
 ## 6.1.1 Simple Interactive Networks in igraph
-
 data(Bali)
 iBali <- asIgraph(Bali)
 
 set.seed(202424)
-
 ## Nota (Intel Macs): el uso de tcltk requiere XQuartz (versión 2.8.5 o posterior).
 ## Vuelva siempre a instalar XQuartz cuando actualice su macOS a una nueva versión principal.
 ## https://www.xquartz.org/
 Coord <- tkplot(iBali, vertex.size=3,
                 vertex.label=V(iBali)$role,
                 vertex.color="darkgreen")
-
-
 # Edit plot in Tk graphics window before
 # running next two commands.
 MCoords <- tkplot.getcoords(Coord)
@@ -63,22 +48,20 @@ plot(iBali, layout=MCoords, vertex.size=5,
 
 
 ## 6.1.2 Publishing Web-Based Interactive Network Diagrams
-
 src <- c("A","A","B","B","C","E")
 target <- c("B","C","C","D","B","C")
 net_edge <- data.frame(src, target)
 simpleNetwork(net_edge)
 net_D3 <- simpleNetwork(net_edge)
 saveNetwork(net_D3, file = 'Net_test1.html',
-            selfcontained=TRUE)
-
+            selfcontained = TRUE)
 
 iBali_edge <- get.edgelist(iBali)
 iBali_edge <- iBali_edge - 1
 iBali_edge <- data.frame(iBali_edge)
 iBali_nodes <- data.frame(NodeID=as.numeric(V(iBali)-1),
                           Group=V(iBali)$role,
-                          Nodesize=(degree(iBali)))
+                          Nodesize=(igraph::degree(iBali)))
 forceNetwork(Links = iBali_edge, Nodes = iBali_nodes,
              Source = "X1", Target = "X2",
              NodeID = "NodeID",Nodesize = "Nodesize",
@@ -94,7 +77,6 @@ net_D3 <- forceNetwork(Links = iBali_edge,
                        legend=TRUE)
 saveNetwork(net_D3,file = 'Net_test2.html',
             selfcontained=TRUE)
-
 
 iBali_edge <- get.edgelist(iBali)
 iBali_edge <- data.frame(from = iBali_edge[,1],
@@ -115,7 +97,6 @@ saveWidget(net, "Net_test3.html")
 
 ## 6.1.3 Statnet Web: Interactive statnet with shiny
 run_sw()
-
 
 ## 6.2 Specialized Network Diagrams
 
@@ -168,7 +149,6 @@ rownames(FIFAm) <- c("GK1","DF3","DF4","DF5",
 palf <- colorRampPalette(c("#669999", "#003333"))
 heatmap(FIFAm[,11:1],Rowv = NA,Colv = NA,col = palf(60),
         scale="none", margins=c(11,11) )
-
 
 ## 6.3 Creating Network Diagrams with Other R Packages
 
@@ -262,6 +242,7 @@ lay <- as.matrix(cbind(plt.x,plt.y))
 
 shapes <- c("circle","square")
 colors <- c("blue","red")
+set.seed(202424)
 plot(bn,vertex.color=colors[V(bn)$type+1],
      vertex.shape=shapes[V(bn)$type+1],
      vertex.size=10,vertex.label.degree=-pi/2,
@@ -303,7 +284,7 @@ bn2
 edge_density(bn)==edge_density(bn2)
 
 ### 9.2.3 Plotting Affiliation Networks
-
+set.seed(202424)
 shapes <- c("circle","square")
 colors <- c("blue","red")
 plot(bn,vertex.color=colors[V(bn)$type+1],
@@ -327,11 +308,13 @@ get.adjacency(bn.class,sparse=FALSE,attr="weight")
 shapes <- c("circle","square")
 colors <- c("blue","red")
 op <- par(mfrow=c(1,2))
+set.seed(202424)
 plot(bn.student,vertex.color="blue",
      vertex.shape="circle",main="Students",
      edge.width=E(bn.student)$weight*2,
      vertex.size=15,vertex.label.degree=-pi/2,
      vertex.label.dist=1.2,vertex.label.cex=1)
+set.seed(202424)
 plot(bn.class,vertex.color="red",
      vertex.shape="square",main="Classes",
      edge.width=E(bn.student)$weight*2,
@@ -363,6 +346,7 @@ V(h1)$color <- ifelse(V(h1)$type==TRUE,
 h2 <- subgraph.edges(h1, E(h1)[.inc(V(h1)[name %in%
                                            c("The Wolf of Wall Street", "Gangs of New York",
                                              "The Departed")])])
+set.seed(202424)
 plot(h2, layout = layout_with_kk)
 
 graph.density(h1)
@@ -413,6 +397,7 @@ h1.act
 h1.mov
 
 op <- par(mar = rep(0, 4))
+set.seed(202424)
 plot(h1.mov,vertex.color="red",
      vertex.shape="circle",
      vertex.size=(V(h1.mov)$IMDBrating)-3,
@@ -427,6 +412,7 @@ table(E(h1.mov)$weight)
 
 h2.mov <- induced_subgraph(h1.mov,
                            vids=clusters(h1.mov)$membership==1)
+set.seed(202424)
 plot(h2.mov,vertex.color="red",
      edge.width=sqrt(E(h1.mov)$weight),
      vertex.shape="circle",
@@ -438,7 +424,7 @@ table(coreness(h2.mov))
 h3.mov <- induced.subgraph(h2.mov,
                            vids=graph.coreness(h2.mov)>4)
 h3.mov
-
+set.seed(202424)
 plot(h3.mov,vertex.color="red",
      vertex.shape="circle",
      edge.width=sqrt(E(h1.mov)$weight),
@@ -449,54 +435,94 @@ plot(h3.mov,vertex.color="red",
 #===========================================#
 ####  3. Base considerada por mi misma   ####
 #===========================================#
+# Eliminar objetos del entorno
 rm(list = ls())
 
+# Librerías
 library(dplyr)
 library(ggplot2)
 library(igraph)
+library(viridis)
 
+# Datos seleccionados
 df_raw <- read.csv("Datos/reforma_tributaria_04_11_2022_5pm_mixed_spanish.csv")
-df_raw %>% tibble %>% filter(tweet_type == "retweet") %>% 
-  select(from_user_id,to_user_id,
-         from_user_screen_name,to_user_screen_name,
-         from_user_botscore,to_user_botscore) -> df
+df <- df_raw %>% filter(tweet_type == "retweet") %>% 
+  select(from_user_id, to_user_id, from_user_screen_name,
+         to_user_screen_name, from_user_botscore, to_user_botscore)
 
-G <- graph_from_data_frame(select(df,from_user_id,to_user_id),directed = T)
-G <- simplify(G)
+G1 <- graph_from_data_frame(select(df, from_user_screen_name, to_user_screen_name), directed = TRUE)
+G1 <- simplify(G1)
+
+class(G1)
+ecount(G1)
+vcount(G1)
+is_connected(G1)
+
+# Componente gigante
+comp <- components(G1)
+comp$csize[1]/vcount(G1) 
+
+G <- subgraph(G1, which(comp$membership == 1))
+df_gc <- df_raw[comp$membership == 1, ]
+
+ecount(G)
+vcount(G)
+is_connected(G)
 
 ####  3.1 Caracterizar la centralidad de los nodos ####
 
-dc <- igraph::degree(graph = G, normalized = TRUE)
-head(sort(dc, decreasing = TRUE), n = 5)
+# out-degree
+out_dg <- igraph::degree(graph = G, mode = "out", normalized = TRUE)
+head(sort(out_dg, decreasing = TRUE), n = 5)
 
 # closeness centraliy normalizada
-cc <- igraph::closeness(graph = G, normalized = TRUE)
+D <- distances(G)
+n <-  vcount(G)
+cc <- (n - 1)/apply(X = D, MARGIN = 1, FUN = sum)
 head(sort(cc, decreasing = TRUE), n = 5)
 
 # betweenness centrality normalizada
-bc <- igraph::betweenness(graph = G, normalized = TRUE)
+bc <- igraph::betweenness(graph = G, directed = TRUE, normalized = TRUE)
 head(sort(bc, decreasing = TRUE), n = 5)
 
 # eigen centraliy normalizada
-ec <- eigen_centrality(graph = G, scale = TRUE)$vector
+Y <- as_adjacency_matrix(G, sparse = FALSE)
+g <- graph_from_adjacency_matrix(Y)
+evd <- eigen(Y)
+ec <- eigen_centrality(graph = g, scale = TRUE)$vector
 head(sort(ec, decreasing = TRUE), n = 5)
 
 ####  3.2 Visualizar la red ####
 ## con un diseño adecuado teniendo en cuenta la centralidad de los nodos. 
 
 # visualizacion
-par(mfrow = c(2,2), mar = c(4, 3, 3, 1))
 set.seed(202424)
 l <- layout_with_fr(G)
-plot(G, layout = l, vertex.size = 15*sqrt(dc), vertex.frame.color = "black", vertex.label = NA, main = "Grado")
-plot(G, layout = l, vertex.size = 15*sqrt(cc), vertex.frame.color = "black", vertex.label = NA, main = "Cercania")
-plot(G, layout = l, vertex.size = 15*sqrt(bc), vertex.frame.color = "black", vertex.label = NA, main = "Intermediación")
-plot(G, layout = l, vertex.size = 15*sqrt(ec), vertex.frame.color = "black", vertex.label = NA, main = "Propia")
-dev.off()
 
-plot(G, layout = l, vertex.size = log(1+ec), vertex.label = NA,
-     vertex.color = "lightblue", vertex.label.cex = 0.4, edge.width = 0.5,
-     edge.color = "#a0a0a060", edge.arrow.size = 0.2)
+# grado de salida
+colores <- rep("gray", length(out_dg)) # Todos los vértices
+colores[which.max(out_dg)] <- "red"     # Vértice máximo de out_dg
+plot(G, layout = l, vertex.size = 15*sqrt(out_dg), 
+     vertex.frame.color = "black", vertex.label = NA,
+     edge.width = 0.5, edge.color = "#a0a0a060", edge.arrow.size = 0.2,
+     vertex.color = colores)
+
+# cercanía
+colores <- rep("gray", length(cc)) # Todos los vértices
+colores[which.max(cc)] <- "red"     # Vértice máximo de cc
+plot(G, layout = l, vertex.size = 10*sqrt(cc),
+     vertex.frame.color = "black", vertex.label = NA,
+     edge.width = 0.5, edge.color = "#a0a0a060", edge.arrow.size = 0.2,
+     vertex.color = colores)
+
+# valores propios
+colores <- rep("gray", length(ec)) # Todos los vértices
+colores[which.max(ec)] <- "red"     # Vértice máximo de out_dg
+plot(G, layout = l, vertex.size = 15*sqrt(ec),
+     vertex.frame.color = "black", vertex.label = NA,
+     edge.width = 0.5, edge.color = "#a0a0a060", edge.arrow.size = 0.2,
+     vertex.color = colores)
+dev.off()
 
 ####  3.3 Identificar los puntos de articulación, los puntos aislados y las componentes ####
 
@@ -505,98 +531,162 @@ is_connected(G)
 
 # puntos aislados
 V(G)[igraph::degree(G) == 0]
+V(G1)[igraph::degree(G1) == 0]
 
 # componentes
-componentes <- decompose(G)
+componentes <- decompose(G1)
 length(componentes)
-
 table(sapply(X = componentes, FUN = vcount))
 
-# tamaño de la componte gigante
-max(sapply(X = componentes, FUN = vcount))
-which.max(sapply(X = componentes, FUN = vcount))
-max(sapply(X = componentes, FUN = vcount))/vcount(G)
-
-# componente gigante
-G_gc <- decompose(G)[[1]]
-
 # k-conectividad
-vertex_connectivity(G_gc)
-edge_connectivity(G_gc)
+vertex_connectivity(G)
 
 # puntos de articulación
-G_cv <- articulation_points(G_gc)
+G_cv <- articulation_points(G)
 length(G_cv)
 
 # % de los vértices que son puntos de articulación.
-length(G_cv)/vcount(G_gc)
+length(G_cv)/vcount(G)
 
 # visualización
-l <- layout_with_fr(G_gc)
-ec <- eigen_centrality(graph = G_gc, scale = TRUE)$vector
-plot(G_gc, layout = l, vertex.size = log(2+ec), vertex.label = NA,
-     vertex.color = "lightblue", vertex.label.cex = 0.4, edge.width = 0.5,
-     edge.color = "#a0a0a060", edge.arrow.size = 0.2)
+colores <- rep("gray", vcount(G)) # Todos los vértices
+colores[match(names(V(G)), names(G_cv))] <- "red"     # Vértices de puntos de articulación
+plot(G, layout = l, vertex.size = 15*sqrt(out_dg),
+     vertex.frame.color = "black", vertex.label = NA,
+     edge.width = 0.5, edge.color = "#a0a0a060", edge.arrow.size = 0.2,
+     vertex.color = colores)
 
 
 ####  3.4 Hacer la distribución de las distancia geodésica ####
 
+# diámetro
+diameter(G, directed = TRUE)
+diameter(G, directed = FALSE)
+
 # distancia geodésica promedio
-mean_distance(G_gc)
+mean_distance(G, directed = TRUE)
+mean_distance(G, directed = FALSE)
 
 # distribución de las distancias
-distance_table(G_gc)
+distance_table(G, directed = TRUE)
+distance_table(G, directed = FALSE)
 
 # visualización
-senderos <- distance_table(G_gc)$res
-names(senderos) <- 1:length(senderos)
-barplot(prop.table(senderos), xlab = "Distancia geodésica", ylab = "F. Relativa", border = "grey", col = "grey", main = "Distribución de distancias geodésicas")
+(senderos1 <- distance_table(G, directed = TRUE)$res)
+(senderos2 <- distance_table(G, directed = FALSE)$res)
 
+(names(senderos1) <- 1:length(senderos1))
+(names(senderos2) <- 1:length(senderos2))
+
+mis_colores <- viridis_pal()(length(prop.table(senderos1)))
+barplot(prop.table(senderos1),
+        xlab = "Distancia geodésica", ylab = "F. Relativa",
+        border = "grey", col = mis_colores,
+        ylim = c(0, max(prop.table(senderos1)) * 1.2),
+        space = 0.2,
+        cex.axis = 1.2, 
+        cex.names = 1.2,
+        cex.lab = 1.2,
+        las = 2)
+
+mis_colores <- viridis_pal()(length(prop.table(senderos2)))
+barplot(prop.table(senderos2),
+        xlab = "Distancia geodésica", ylab = "F. Relativa",
+        border = "grey", col = mis_colores,
+        ylim = c(0, max(prop.table(senderos2)) * 1.2),
+        space = 0.2,
+        cex.axis = 1.2, 
+        cex.names = 1.2,
+        cex.lab = 1.2,
+        las = 2)
+dev.off()
 
 ####  3.5 Determinar si la red es libre de escala ####
 
+# Grado de entrada
+d <- degree(G, mode = "in")
+# distribución de grado de entrada
+dd <- degree_distribution(G, mode = "in")
+# Obtener el rango máximo de densidad en ambos gráficos
+max_density <- max(dd[dd != 0])
+
+# visualización
+par(mfrow = c(1,2))
+plot((0:max(d))[dd != 0], dd[dd != 0], log = "xy", pch = 16,
+     col = adjustcolor("tomato3", 0.5), xlab = "Log-grado", ylab = "Log-densidad",
+     main = "Distribución grado de entrada\n(log-log)")
+
+# Grado de salida
+d <- degree(G, mode = "out")
+# distribución de grado de salida
+dd <- degree_distribution(G, mode = "out")
+min_density <- min(dd[dd != 0])
+
+# Crear el mismo rango en el eje Y
+plot((0:max(d))[dd != 0], dd[dd != 0], log = "xy", pch = 16,
+     col = adjustcolor("tomato3", 0.5), xlab = "Log-grado", ylab = "Log-densidad",
+     main = "Distribución grado de salida\n(log-log)", ylim = c(min_density, max_density))
+
+dev.off()
 
 ####  3.6 Hacer un censo de los clanes y calcular el número clan ####
 
-# frecuencias de clanes
-table(sapply(X = cliques(graph = G_gc, min = 1, max = 10), FUN = length))
+# Frecuencias de clanes
+table(sapply(X = cliques(graph = as.undirected(G), min = 1, max = 100), FUN = length))
 
-#Un clan máximo (maximum clique) es el clan maximal más grande.
-#El número clan (clique number) es el tamaño del clan máximo.
-# clanes máximos
-largest_cliques(graph = G_gc)
+# Clanes máximos
+largest_cliques(graph = G)
 
-# número clan
-clique_num(graph = G_gc)
+# Número clan
+clique_num(graph = G)
 
 
 ####  3.7 Calcular la densidad junto con el coeficiente de agrupamiento de la red ####
 
+# Densidad del dígrafo
+ecount(G)/(vcount(G)*(vcount(G)-1))
+
+# Transitividad / Coeficiente de agrupamiento
+transitivity(graph = G, type = "global")
 
 
 ####  3.8 Particionar la red usando tres métodos de agrupamiento de su elección ####
 ## Visualizar los resultados obtenidos.
 
-c1 <- cluster_label_prop  (G_gc)
-c2 <- cluster_spinglass   (G_gc)
-c3 <- cluster_walktrap    (G_gc)
+set.seed(202424)
+c1 <- cluster_edge_betweenness  (G)
+c2 <- cluster_walktrap          (G)
+c3 <- cluster_label_prop        (G)
 
 igraph_options(vertex.size = 3, vertex.frame.color = "black")
-plot(G_gc, vertex.label = NA, layout = l, vertex.color = c1$membership, main = "c1")
-plot(G_gc, vertex.label = NA, layout = l, vertex.color = c2$membership, main = "c2")
-plot(G_gc, vertex.label = NA, layout = l, vertex.color = c3$membership, main = "c3")
+plot(G, vertex.label = NA, layout = l, vertex.color = c1$membership)
+plot(G, vertex.label = NA, layout = l, vertex.color = c2$membership)
+plot(G, vertex.label = NA, layout = l, vertex.color = c3$membership)
 
 ####  3.9 Hacer un análisis de asortatividad de la red ####
 
-# asortatividad nominal
-v.types <- V(G_gc)$
-assortativity_nominal(graph = G_gc, types = v.types, directed = FALSE)
+# Generar aleatoriamente un atributo
+## 1: Masculino
+## 2: Femenino
+set.seed(202424)
+sexo <- sample(c(1, 2), vcount(G), replace = TRUE)
+# Asigna los atributos a los nodos
+V(G)$sexo <- sexo
 
-# asortatividad grado
-assortativity_degree(G_gc)
+# Tabla
+table(V(G)$sexo)
 
-####  3.9 Interpretar los resultados ####
-## Esta parte puede encontrarse dentro del informe correspondiente al taller 3
+# Asortatividad nominal
+v.types <- V(G)$sexo
+assortativity_nominal(graph = G, types = v.types, directed = FALSE)
+
+# Asortatividad grado
+assortativity_degree(G)
+
+# visualización
+par(mfrow = c(1, 1), mar = c(4, 3, 3, 1))
+set.seed(202424)
+plot(G, vertex.label = NA, layout = l, vertex.color = ifelse(V(G)$sexo == 1, "sienna1", "khaki1"))
 
 #=========================#
 ####  4. Referencias   ####
